@@ -6,11 +6,11 @@ import (
 )
 
 func main() {
-	c := client.Client{
-		Api_url:      "https://dev-signal.authsignal.com",
-		Api_key:      "mURA8eRlODYiEd+butwzGp/5GTaC3tyEoFcufvVxtd0OoJYVK9EVuA==",
-		Redirect_url: "",
-	}
+	c := client.New(
+		"https://dev-signal.authsignal.com",
+		"mURA8eRlODYiEd+butwzGp/5GTaC3tyEoFcufvVxtd0OoJYVK9EVuA==",
+		"")
+
 	c.PrintConfig()
 	fmt.Println(c.GetUser("1"))
 
@@ -28,7 +28,7 @@ func main() {
 	fmt.Println("Login With Email")
 	loginWithEmailRequest := client.LoginWithEmailRequest{
 		Email:       "test@email.me",
-		RedirectUrl: "http://www.authsignal.com",
+		RedirectUrl: "https://www.authsignal.com",
 	}
 	fmt.Println(c.LoginWithEmail(loginWithEmailRequest))
 

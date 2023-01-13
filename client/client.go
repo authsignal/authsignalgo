@@ -10,16 +10,18 @@ import (
 )
 
 // todo unMarshal the responses into objects.
-// todo only forward body elements required along, not all of request.
+// todo only forward body elements required along, not all requests.
+
+const TIMEOUT = 5
 
 type Client struct {
-	Api_key      string
-	Api_url      string
-	Redirect_url string
+	apiKey      string
+	apiUrl      string
+	redirectUrl string
 }
 
-func New(api_key string, api_url string, redirect_url string) Client {
-	c := Client{api_key, api_url, redirect_url}
+func New(apiKey string, apiUrl string, redirectUrl string) Client {
+	c := Client{apiKey, apiUrl, redirectUrl}
 	return c
 }
 
@@ -36,29 +38,38 @@ func (c Client) userAgent() string {
 }
 
 func (c Client) PrintConfig() {
-	fmt.Println(c.Api_url)
+	fmt.Println(c.apiUrl)
 }
 
-func (c Client) GetUser(user_id string) string {
-	return c.makeRequest("GET", c.Api_url+"/v1/users/"+user_id, nil)
+func (c Client) GetUser(userId string) string {
+	return c.makeRequest("GET", c.apiUrl+"/v1/users/"+userId, nil)
 }
 
-func (c Client) TrackAction(request TrackRequest) string {
-	url := c.Api_url + "/v1/users/" + request.UserId + "/actions/" + request.Action
+func (c Client) TrackAction(request TrackRequest) TrackResponse {
+	url := c.apiUrl + "/v1/users/" + request.UserId + "/actions/" + request.Action
 
 	body, _ := json.Marshal(request)
 
-	return c.makeRequest("POST", url, bytes.NewBuffer(body))
+	response := c.makeRequest("POST", url, bytes.NewBuffer(body))
+
+	var data TrackResponse
+	err := json.Unmarshal([]byte(response), &data)
+	if err != nil {
+		log.Fatalln(err)
+		return TrackResponse{}
+	}
+
+	return data
 }
 
 func (c Client) GetAction(request GetActionRequest) string {
-	url := c.Api_url + "/v1/users/" + request.UserId + "/actions/" + request.Action + "/" + request.IdempotencyKey
+	url := c.apiUrl + "/v1/users/" + request.UserId + "/actions/" + request.Action + "/" + request.IdempotencyKey
 
 	return c.makeRequest("GET", url, nil)
 }
 
 func (c Client) EnrollVerifiedAuthenticator(request EnrollVerifiedAuthenticatorRequest) string {
-	url := c.Api_url + "/v1/users/" + request.UserId + "authenticators"
+	url := c.apiUrl + "/v1/users/" + request.UserId + "authenticators"
 
 	body, _ := json.Marshal(request)
 
@@ -66,7 +77,7 @@ func (c Client) EnrollVerifiedAuthenticator(request EnrollVerifiedAuthenticatorR
 }
 
 func (c Client) LoginWithEmail(request LoginWithEmailRequest) string {
-	url := c.Api_url + "/v1/users/email/" + request.Email + "/challenge"
+	url := c.apiUrl + "/v1/users/email/" + request.Email + "/challenge"
 
 	body, _ := json.Marshal(request)
 
@@ -79,13 +90,13 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) string {
 
 func (c Client) makeRequest(method string, url string, body io.Reader) string {
 	client := http.Client{}
+	client.Timeout = TIMEOUT
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	req.Header = c.defaultHeaders()
-	req.SetBasicAuth(c.Api_key, "")
+	req.SetBasicAuth(c.apiKey, "")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -103,6 +114,7 @@ func (c Client) makeRequest(method string, url string, body io.Reader) string {
 		log.Fatalln(err)
 	}
 
+	// todo return byte[] or unpack into a response object generically.
 	sb := string(responseBody)
 	return sb
 }
