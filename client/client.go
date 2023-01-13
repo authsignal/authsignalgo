@@ -37,7 +37,8 @@ func (c Client) userAgent() string {
 }
 
 func (c Client) GetUser(userId string) (string, error) {
-	return c.get(userId)
+	response, err := c.get(userId)
+	return string(response), err
 }
 
 func (c Client) TrackAction(request TrackRequest) (TrackResponse, error) {
@@ -53,7 +54,7 @@ func (c Client) TrackAction(request TrackRequest) (TrackResponse, error) {
 	}
 
 	var data TrackResponse
-	err3 := json.Unmarshal([]byte(response), &data)
+	err3 := json.Unmarshal(response, &data)
 	if err3 != nil {
 		return TrackResponse{}, err3
 	}
@@ -69,7 +70,7 @@ func (c Client) GetAction(request GetActionRequest) (GetActionResponse, error) {
 	}
 
 	var data GetActionResponse
-	err2 := json.Unmarshal([]byte(response), &data)
+	err2 := json.Unmarshal(response, &data)
 	if err2 != nil {
 		return GetActionResponse{}, err2
 	}
@@ -86,11 +87,11 @@ func (c Client) EnrollVerifiedAuthenticator(request EnrollVerifiedAuthenticatorR
 	path := fmt.Sprintf("%s/authenticators", request.UserId)
 	response, err2 := c.post(path, bytes.NewBuffer(body))
 	if err2 != nil {
-		return EnrollVerifiedAuthenticatorResponse{}, err
+		return EnrollVerifiedAuthenticatorResponse{}, err2
 	}
 
 	var data EnrollVerifiedAuthenticatorResponse
-	err3 := json.Unmarshal([]byte(response), &data)
+	err3 := json.Unmarshal(response, &data)
 	if err3 != nil {
 		return EnrollVerifiedAuthenticatorResponse{}, err3
 	}
@@ -106,11 +107,11 @@ func (c Client) LoginWithEmail(request LoginWithEmailRequest) (LoginWithEmailRes
 
 	response, err2 := c.post(fmt.Sprintf("/email/%s/challenge", request.Email), bytes.NewBuffer(body))
 	if err2 != nil {
-		return LoginWithEmailResponse{}, err
+		return LoginWithEmailResponse{}, err2
 	}
 
 	var data LoginWithEmailResponse
-	err3 := json.Unmarshal([]byte(response), &data)
+	err3 := json.Unmarshal(response, &data)
 	if err3 != nil {
 		return LoginWithEmailResponse{}, err3
 	}
@@ -122,29 +123,29 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) string {
 	return "NOT YET IMPLEMENTED"
 }
 
-func (c Client) get(path string) (string, error) {
+func (c Client) get(path string) ([]byte, error) {
 	return c.makeRequest("GET", path, nil)
 }
 
-func (c Client) post(path string, body io.Reader) (string, error) {
+func (c Client) post(path string, body io.Reader) ([]byte, error) {
 	return c.makeRequest("POST", path, body)
 }
 
-func (c Client) makeRequest(method, path string, body io.Reader) (string, error) {
+func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error) {
 	client := http.Client{}
 	client.Timeout = RequestTimeout
 	req, err := http.NewRequest(method, fmt.Sprintf("%s/v1/users/%s", c.apiUrl, path), body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	req.Header = c.defaultHeaders()
 	req.SetBasicAuth(c.apiKey, "")
 	// todo Context for HTTP requests to put the Timeout + other config in.
-
+	// Todo deal with HTTP status code.
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer func() {
@@ -156,11 +157,8 @@ func (c Client) makeRequest(method, path string, body io.Reader) (string, error)
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// Todo deal with HTTP status code.
-	// todo return byte[] or unpack into a response object generically.
-	sb := string(responseBody)
-	return sb, nil
+	return responseBody, nil
 }
