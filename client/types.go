@@ -2,12 +2,12 @@ package client
 
 type AuthsignalConstructor struct {
 	Secret      string
-	ApiBaseUrl  string
+	ApiBaseUrl  string //TODO APIBaseURL
 	RedirectUrl string
 }
 
 type UserRequest struct {
-	UserId string
+	UserId string // todo ID
 }
 
 type UserResponse struct {

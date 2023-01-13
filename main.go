@@ -11,7 +11,8 @@ func main() {
 		"mURA8eRlODYiEd+butwzGp/5GTaC3tyEoFcufvVxtd0OoJYVK9EVuA==",
 		"")
 
-	c.PrintConfig()
+	fmt.Println()
+	fmt.Println("Get User")
 	fmt.Println(c.GetUser("1"))
 
 	fmt.Println()
@@ -22,7 +23,11 @@ func main() {
 		PhoneNumber: "024525252",
 		Email:       "test@email.me",
 	}
-	fmt.Println(c.EnrollVerifiedAuthenticator(enrollVerifiedAuthenticatorRequest))
+	response, err := c.EnrollVerifiedAuthenticator(enrollVerifiedAuthenticatorRequest)
+	if err != nil {
+		println(err)
+	}
+	fmt.Println(response)
 
 	fmt.Println()
 	fmt.Println("Login With Email")
