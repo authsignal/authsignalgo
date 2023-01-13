@@ -11,6 +11,8 @@ import (
 
 // todo do you want the Errors remapped to a Authsignal one or is the strategy to leave dependencies escalating their own errors.
 // todo only forward body elements required along, not all requests.
+// todo Context for HTTP requests to put the Timeout + other config in.
+// Todo deal with HTTP status code.
 
 const RequestTimeout = 10 * time.Second
 
@@ -141,8 +143,6 @@ func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error)
 
 	req.Header = c.defaultHeaders()
 	req.SetBasicAuth(c.apiKey, "")
-	// todo Context for HTTP requests to put the Timeout + other config in.
-	// Todo deal with HTTP status code.
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
