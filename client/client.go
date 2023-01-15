@@ -9,9 +9,17 @@ import (
 	"time"
 )
 
-// todo do you want the Errors remapped to a Authsignal one or is the strategy to leave dependencies escalating their own errors.
-// todo only forward body elements required along, not all requests.
-// todo Context for HTTP requests to put the Timeout + other config in.
+/*
+This is the AuthSignal Go Lang SDK.
+The module wraps the AuthSignal APIs with a Go Lang implementation allowing easier integration.
+
+Notable decisions:
+- We have a 10-second timeout set, as response speed is controlled by Authsignal.
+- We do not remap errors from any libraries are dependent on, changing such libraries should be considered
+  a breaking change as users for the SDK are bound to the libraries versions.
+  This was made because we do not have many libraries, and they are core golang libraries.
+*/
+// Todo it could be better to use Context for HTTP requests to put the Timeout + other config in.
 // Todo deal with HTTP status code.
 
 const RequestTimeout = 10 * time.Second
