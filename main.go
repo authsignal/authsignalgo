@@ -23,11 +23,7 @@ func main() {
 		PhoneNumber: "024525252",
 		Email:       "test@email.me",
 	}
-	response, err := c.EnrollVerifiedAuthenticator(enrollVerifiedAuthenticatorRequest)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(response)
+	fmt.Println(c.EnrollVerifiedAuthenticator(enrollVerifiedAuthenticatorRequest))
 
 	fmt.Println()
 	fmt.Println("Login With Email")
