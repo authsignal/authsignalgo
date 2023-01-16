@@ -25,7 +25,7 @@ func main() {
 	}
 	response, err := c.EnrollVerifiedAuthenticator(enrollVerifiedAuthenticatorRequest)
 	if err != nil {
-		println(err)
+		fmt.Println(err)
 	}
 	fmt.Println(response)
 
