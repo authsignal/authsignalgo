@@ -27,7 +27,7 @@ type TrackRequest struct {
 }
 
 type TrackResponse struct {
-	State          UserActionState
+	State          string
 	IdempotencyKey string
 	RuleIds        []string
 	Url            string
@@ -42,7 +42,7 @@ type GetActionRequest struct {
 }
 
 type GetActionResponse struct {
-	State UserActionState
+	State string
 }
 
 type EnrollVerifiedAuthenticatorRequest struct {
@@ -73,18 +73,8 @@ type ValidateChallengeRequest struct {
 
 type ValidateChallengeResponse struct {
 	Success bool
-	State   UserActionState
+	State   string
 }
-
-type UserActionState int
-
-const (
-	ALLOW = iota
-	BLOCK
-	CHALLENGE_REQUIRED
-	CHALLENGE_SUCCEEDED
-	CHALLENGE_FAILED
-)
 
 type UserAuthenticator struct {
 	UserId              string
