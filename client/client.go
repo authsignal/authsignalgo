@@ -19,9 +19,8 @@ Notable decisions:
   a breaking change as users for the SDK are bound to the libraries versions.
   This was made because we do not have many libraries, and they are core golang libraries.
 */
-// Todo it could be better to use Context for HTTP requests to put the Timeout + other config in.
-// Todo deal with HTTP status code.
 
+// RequestTimeout Todo improvement: timout could be done in context.
 const RequestTimeout = 10 * time.Second
 
 type Client struct {
@@ -115,7 +114,7 @@ func (c Client) LoginWithEmail(request LoginWithEmailRequest) (LoginWithEmailRes
 		return LoginWithEmailResponse{}, err
 	}
 
-	response, err2 := c.post(fmt.Sprintf("/email/%s/challenge", request.Email), bytes.NewBuffer(body))
+	response, err2 := c.post(fmt.Sprintf("email/%s/challenge", request.Email), bytes.NewBuffer(body))
 	if err2 != nil {
 		return LoginWithEmailResponse{}, err2
 	}
@@ -162,6 +161,10 @@ func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error)
 			return //todo handle error or pass up.
 		}
 	}()
+
+	if resp.StatusCode > 299 {
+		return nil, fmt.Errorf("bad request to %s, http status code of %d, status was: %s", req.URL, resp.StatusCode, resp.Status)
+	}
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
