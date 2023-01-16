@@ -1,5 +1,10 @@
 package client
 
+import (
+	"encoding/json"
+	"errors"
+)
+
 type AuthsignalConstructor struct {
 	Secret      string
 	ApiBaseUrl  string //TODO APIBaseURL
@@ -33,6 +38,25 @@ type TrackResponse struct {
 	Url            string
 	IsEnrolled     bool
 	ChallengeUrl   string
+}
+
+func (s *TrackResponse) UnmarshalJSON(data []byte) error {
+	// Define a secondary type so that we don't end up with a recursive call to json.Unmarshal
+	type Aux TrackResponse
+	var a *Aux = (*Aux)(s)
+	err := json.Unmarshal(data, &a)
+	if err != nil {
+		return err
+	}
+
+	// Validate the valid enum values
+	switch s.State {
+	case s.State:
+		return nil
+	default:
+		s.State = UserActionState(INVALID)
+		return errors.New("invalid value for Key")
+	}
 }
 
 type GetActionRequest struct {
@@ -84,6 +108,7 @@ const (
 	CHALLENGE_REQUIRED
 	CHALLENGE_SUCCEEDED
 	CHALLENGE_FAILED
+	INVALID
 )
 
 type UserAuthenticator struct {
