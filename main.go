@@ -19,7 +19,7 @@ func main() {
 	fmt.Println("Enroll Verified Authenticator")
 	enrollVerifiedAuthenticatorRequest := client.EnrollVerifiedAuthenticatorRequest{
 		UserId:      "1",
-		OobChannel:  "blah",
+		OobChannel:  "EMAIL_MAGIC_LINK",
 		PhoneNumber: "024525252",
 		Email:       "test@email.me",
 	}
