@@ -3,7 +3,9 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt"
 	"io"
 	"net/http"
 	"time"
@@ -128,8 +130,46 @@ func (c Client) LoginWithEmail(request LoginWithEmailRequest) (LoginWithEmailRes
 	return data, err
 }
 
-func (c Client) ValidateChallenge(request ValidateChallengeRequest) string {
-	return "NOT YET IMPLEMENTED"
+func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateChallengeResponse, error) {
+	tokenString := request.Token
+	userId := request.UserId
+
+	claims1 := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims1, func(token *jwt.Token) (interface{}, error) {
+		return []byte(c.apiKey), nil
+	})
+
+	if err != nil {
+		return ValidateChallengeResponse{}, err
+	}
+
+	for key, val := range claims1 {
+		fmt.Printf("Key: %v, value: %v\n", key, val)
+	}
+
+	if userId != claims1["UserId"].(string) {
+		return ValidateChallengeResponse{}, errors.New("invalid user")
+	}
+
+	idempotencyKey := claims1["IdempotencyKey"].(string)
+	action := claims1["ActionCode"].(string)
+
+	if action != "" && idempotencyKey != "" {
+		actionResult, err := c.GetAction(GetActionRequest{
+			UserId:         userId,
+			Action:         action,
+			IdempotencyKey: idempotencyKey,
+		})
+		if err != nil {
+			return ValidateChallengeResponse{}, err
+		}
+
+		if actionResult.State == "CHALLENGE_SUCCEEDED" {
+			return ValidateChallengeResponse{true, actionResult.State}, nil
+		}
+	}
+
+	return ValidateChallengeResponse{false, ""}, nil
 }
 
 func (c Client) get(path string) ([]byte, error) {

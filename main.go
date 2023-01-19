@@ -3,6 +3,7 @@ package main
 import (
 	"authsignalgo/client"
 	"fmt"
+	"github.com/golang-jwt/jwt"
 )
 
 func main() {
@@ -39,14 +40,45 @@ func main() {
 		UserId: "1",
 		Action: "ABC",
 	}
-	fmt.Println(c.TrackAction(trackRequest))
+	action, _ := c.TrackAction(trackRequest)
+
+	key := action.IdempotencyKey
+	fmt.Println(action)
 
 	fmt.Println()
 	fmt.Println("Get Action Request")
 	getActionRequest := client.GetActionRequest{
 		UserId:         "1",
 		Action:         "ABC",
-		IdempotencyKey: "ACBD12312",
+		IdempotencyKey: key,
 	}
 	fmt.Println(c.GetAction(getActionRequest))
+
+	fmt.Println()
+	fmt.Println("Validate Challenge")
+	tokenString, _ := generateJWT("1", action.IdempotencyKey)
+	validateChallengeRequest := client.ValidateChallengeRequest{
+		UserId: "1",
+		Token:  tokenString,
+	}
+	fmt.Println(c.ValidateChallenge(validateChallengeRequest))
+
+}
+
+func generateJWT(userId, idempotencyKey string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"UserId":         userId,
+		"TenantId":       12342,
+		"PublishableKey": "1",
+		"Email":          "email@test.me",
+		"PhoneNumber":    "242525252",
+		"ActionCode":     "ABC",
+		"IdempotencyKey": idempotencyKey,
+	})
+
+	tokenString, err := token.SignedString([]byte("mURA8eRlODYiEd+butwzGp/5GTaC3tyEoFcufvVxtd0OoJYVK9EVuA=="))
+	if err != nil {
+		return "Signing Error", err
+	}
+	return tokenString, nil
 }

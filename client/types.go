@@ -1,5 +1,7 @@
 package client
 
+import "github.com/golang-jwt/jwt"
+
 type AuthsignalConstructor struct {
 	Secret      string
 	ApiBaseUrl  string //TODO APIBaseURL
@@ -79,13 +81,13 @@ type ValidateChallengeResponse struct {
 type UserAuthenticator struct {
 	UserId              string
 	UserAuthenticatorId string
-	AuthenticatorType   AuthenticatorType
+	AuthenticatorType   string
 	CreatedAt           string
 	IsDefault           bool
 	VerifiedAt          string
 	IsActive            bool
-	OobChannel          OobChannel
-	OtpBinding          OtpBinding
+	OobChannel          string
+	OtpBinding          string
 	PhoneNumber         string
 	Email               string
 }
@@ -116,4 +118,5 @@ type RedirectTokenPayload struct {
 	PhoneNumber    string
 	ActionCode     string
 	IdempotencyKey string
+	jwt.StandardClaims
 }
