@@ -143,10 +143,6 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateCha
 		return ValidateChallengeResponse{}, err
 	}
 
-	for key, val := range claims1 {
-		fmt.Printf("Key: %v, value: %v\n", key, val)
-	}
-
 	if userId != claims1["UserId"].(string) {
 		return ValidateChallengeResponse{}, errors.New("invalid user")
 	}
