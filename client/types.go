@@ -4,12 +4,12 @@ import "github.com/golang-jwt/jwt"
 
 type AuthsignalConstructor struct {
 	Secret      string
-	ApiBaseUrl  string //TODO APIBaseURL
+	ApiBaseUrl  string
 	RedirectUrl string
 }
 
 type UserRequest struct {
-	UserId string // todo ID
+	UserId string
 }
 
 type UserResponse struct {

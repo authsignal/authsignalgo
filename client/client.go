@@ -5,24 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
-/*
-This is the AuthSignal Go Lang SDK.
-The module wraps the AuthSignal APIs with a Go Lang implementation allowing easier integration.
-
-Notable decisions:
-- We have a 10-second timeout set, as response speed is controlled by Authsignal.
-- We do not remap errors from any libraries are dependent on, changing such libraries should be considered
-  a breaking change as users for the SDK are bound to the libraries versions.
-  This was made because we do not have many libraries, and they are core golang libraries.
-*/
-
-// RequestTimeout Todo improvement: timout could be done in context.
 const RequestTimeout = 10 * time.Second
 
 type Client struct {
@@ -44,7 +33,7 @@ func (c Client) defaultHeaders() http.Header {
 }
 
 func (c Client) userAgent() string {
-	return "Authsignal Go v1" // todo make module version dynamic
+	return "Authsignal Go v1"
 }
 
 func (c Client) GetUser(userId string) (string, error) {
@@ -108,26 +97,6 @@ func (c Client) EnrollVerifiedAuthenticator(request EnrollVerifiedAuthenticatorR
 	}
 
 	return data, nil
-}
-
-func (c Client) LoginWithEmail(request LoginWithEmailRequest) (LoginWithEmailResponse, error) {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return LoginWithEmailResponse{}, err
-	}
-
-	response, err2 := c.post(fmt.Sprintf("email/%s/challenge", request.Email), bytes.NewBuffer(body))
-	if err2 != nil {
-		return LoginWithEmailResponse{}, err2
-	}
-
-	var data LoginWithEmailResponse
-	err3 := json.Unmarshal(response, &data)
-	if err3 != nil {
-		return LoginWithEmailResponse{}, err3
-	}
-
-	return data, err
 }
 
 func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateChallengeResponse, error) {
