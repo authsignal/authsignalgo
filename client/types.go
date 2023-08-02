@@ -1,11 +1,8 @@
 package client
 
-import "github.com/golang-jwt/jwt"
-
-type AuthsignalConstructor struct {
-	Secret      string
-	ApiBaseUrl  string
-	RedirectUrl string
+type AuthsignalClient struct {
+	Secret     string
+	ApiBaseUrl string
 }
 
 type UserRequest struct {
@@ -13,28 +10,37 @@ type UserRequest struct {
 }
 
 type UserResponse struct {
-	IsEnrolled bool
+	IsEnrolled                  bool
+	Email                       string
+	PhoneNumber                 string
+	Username                    string
+	EnrolledVerificationMethods []string
+	DefaultVerificationMethod   string
 }
 
 type TrackRequest struct {
 	UserId             string
 	Action             string
 	Email              string
+	PhoneNumber        string
 	IdempotencyKey     string
 	RedirectUrl        string
 	IpAddress          string
 	UserAgent          string
 	DeviceId           string
+	Scope              string
+	Custom             map[string]string `json:"custom"`
 	RedirectToSettings bool
 }
 
 type TrackResponse struct {
-	State          string
-	IdempotencyKey string
-	RuleIds        []string
-	Url            string
-	IsEnrolled     bool
-	ChallengeUrl   string
+	State                       string
+	IdempotencyKey              string
+	Url                         string
+	Token                       string
+	IsEnrolled                  bool
+	EnrolledVerificationMethods []string
+	DefaultVerificationMethod   string
 }
 
 type GetActionRequest struct {
@@ -44,14 +50,16 @@ type GetActionRequest struct {
 }
 
 type GetActionResponse struct {
-	State string
+	State              string
+	VerificationMethod string
+	CreatedAt          string
 }
 
 type EnrollVerifiedAuthenticatorRequest struct {
-	UserId      string `json:"userId"`
-	OobChannel  string `json:"oobChannel"`
-	PhoneNumber string `json:"phoneNumber"`
-	Email       string `json:"email"`
+	UserId      string
+	OobChannel  string
+	PhoneNumber string
+	Email       string
 }
 
 type EnrollVerifiedAuthenticatorResponse struct {
@@ -59,18 +67,9 @@ type EnrollVerifiedAuthenticatorResponse struct {
 	RecoveryCodes []string
 }
 
-type LoginWithEmailRequest struct {
-	Email       string
-	RedirectUrl string
-}
-
-type LoginWithEmailResponse struct {
-	Url string
-}
-
 type ValidateChallengeRequest struct {
-	UserId string
 	Token  string
+	UserId string
 }
 
 type ValidateChallengeResponse struct {
@@ -87,36 +86,6 @@ type UserAuthenticator struct {
 	VerifiedAt          string
 	IsActive            bool
 	OobChannel          string
-	OtpBinding          string
 	PhoneNumber         string
 	Email               string
-}
-
-type AuthenticatorType int
-
-const (
-	OOB = iota
-	OTP
-)
-
-type OtpBinding struct {
-	Secret string
-	Uri    string
-}
-type OobChannel int
-
-const (
-	SMS = iota
-	EMAIL_MAGIC_LINK
-)
-
-type RedirectTokenPayload struct {
-	TenantId       string
-	PublishableKey string
-	UserId         string
-	Email          string
-	PhoneNumber    string
-	ActionCode     string
-	IdempotencyKey string
-	jwt.StandardClaims
 }
