@@ -2,4 +2,4 @@ module github.com/authsignal/authsignalgo
 
 go 1.20
 
-require github.com/golang-jwt/jwt v3.2.2+incompatible
+require github.com/golang-jwt/jwt/v5 v5.0.0

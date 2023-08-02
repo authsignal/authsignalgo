@@ -9,36 +9,42 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const RequestTimeout = 10 * time.Second
 
 type Client struct {
-	apiKey      string
-	apiUrl      string
-	redirectUrl string
+	secret string
+	apiUrl string
 }
 
-func New(apiUrl, apiKey string, redirectUrl string) Client {
-	return Client{apiKey: apiKey, apiUrl: apiUrl, redirectUrl: redirectUrl}
+func New(secret, apiUrl string) Client {
+	return Client{secret: secret, apiUrl: apiUrl}
 }
 
 func (c Client) defaultHeaders() http.Header {
 	return http.Header{
 		"Accept":       {"*/*"},
 		"Content-Type": {"application/json"},
-		"User-Agent":   {c.userAgent()},
+		"User-Agent":   {"Authsignal Go"},
 	}
 }
 
-func (c Client) userAgent() string {
-	return "Authsignal Go v1"
-}
+func (c Client) GetUser(request UserRequest) (UserResponse, error) {
+	path := fmt.Sprintf("%s", request.UserId)
+	response, err := c.get(path)
+	if err != nil {
+		return UserResponse{}, err
+	}
 
-func (c Client) GetUser(userId string) (string, error) {
-	response, err := c.get(userId)
-	return string(response), err
+	var data UserResponse
+	err2 := json.Unmarshal(response, &data)
+	if err2 != nil {
+		return UserResponse{}, err2
+	}
+
+	return data, nil
 }
 
 func (c Client) TrackAction(request TrackRequest) (TrackResponse, error) {
@@ -100,24 +106,25 @@ func (c Client) EnrollVerifiedAuthenticator(request EnrollVerifiedAuthenticatorR
 }
 
 func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateChallengeResponse, error) {
-	tokenString := request.Token
-	userId := request.UserId
+	parsedClaims := jwt.MapClaims{}
 
-	claims1 := jwt.MapClaims{}
-	_, err := jwt.ParseWithClaims(tokenString, claims1, func(token *jwt.Token) (interface{}, error) {
-		return []byte(c.apiKey), nil
+	_, err := jwt.ParseWithClaims(request.Token, parsedClaims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(c.secret), nil
 	})
 
 	if err != nil {
 		return ValidateChallengeResponse{}, err
 	}
 
-	if userId != claims1["UserId"].(string) {
+	payload := parsedClaims["other"].(map[string]interface{})
+
+	userId := payload["userId"].(string)
+	idempotencyKey := payload["idempotencyKey"].(string)
+	action := payload["actionCode"].(string)
+
+	if request.UserId != "" && request.UserId != userId {
 		return ValidateChallengeResponse{}, errors.New("invalid user")
 	}
-
-	idempotencyKey := claims1["IdempotencyKey"].(string)
-	action := claims1["ActionCode"].(string)
 
 	if action != "" && idempotencyKey != "" {
 		actionResult, err := c.GetAction(GetActionRequest{
@@ -125,13 +132,14 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateCha
 			Action:         action,
 			IdempotencyKey: idempotencyKey,
 		})
+
 		if err != nil {
 			return ValidateChallengeResponse{}, err
 		}
 
-		if actionResult.State == "CHALLENGE_SUCCEEDED" {
-			return ValidateChallengeResponse{true, actionResult.State}, nil
-		}
+		success := actionResult.State == "CHALLENGE_SUCCEEDED"
+
+		return ValidateChallengeResponse{success, actionResult.State}, nil
 	}
 
 	return ValidateChallengeResponse{false, ""}, nil
@@ -148,13 +156,13 @@ func (c Client) post(path string, body io.Reader) ([]byte, error) {
 func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error) {
 	client := http.Client{}
 	client.Timeout = RequestTimeout
-	req, err := http.NewRequest(method, fmt.Sprintf("%s/v1/users/%s", c.apiUrl, path), body)
+	req, err := http.NewRequest(method, fmt.Sprintf("%s/users/%s", c.apiUrl, path), body)
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header = c.defaultHeaders()
-	req.SetBasicAuth(c.apiKey, "")
+	req.SetBasicAuth(c.secret, "")
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
