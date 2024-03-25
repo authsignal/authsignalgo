@@ -73,8 +73,10 @@ type ValidateChallengeRequest struct {
 }
 
 type ValidateChallengeResponse struct {
-	Success bool
-	State   string
+	Success  bool
+	State    string
+	UserId   string
+	Username string
 }
 
 type UserAuthenticator struct {
