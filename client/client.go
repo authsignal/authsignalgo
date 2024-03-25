@@ -6,33 +6,45 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
+	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 const RequestTimeout = 10 * time.Second
 
 type Client struct {
-	secret string
-	apiUrl string
+	tenantId string
+	secret   string
+	apiUrl   string
+	jwks     keyfunc.Keyfunc
 }
 
-func New(secret, apiUrl string) Client {
-	return Client{secret: secret, apiUrl: apiUrl}
+func New(tenantId, secret, apiUrl string) Client {
+	jwksUri := fmt.Sprintf("%s/client/public/%s/.well-known/jwks", apiUrl, tenantId)
+
+	jwks, err := keyfunc.NewDefault([]string{jwksUri})
+
+	if err != nil {
+		log.Fatalf("Invalid tenant.\nError: %s", err)
+	}
+
+	return Client{tenantId: tenantId, secret: secret, apiUrl: apiUrl, jwks: jwks}
 }
 
 func (c Client) defaultHeaders() http.Header {
 	return http.Header{
 		"Accept":       {"*/*"},
 		"Content-Type": {"application/json"},
-		"User-Agent":   {"Authsignal Go"},
+		"X-Tenant-Id":  {c.tenantId},
 	}
 }
 
 func (c Client) GetUser(request UserRequest) (UserResponse, error) {
-	path := fmt.Sprintf("%s", request.UserId)
+	path := request.UserId
 	response, err := c.get(path)
 	if err != nil {
 		return UserResponse{}, err
@@ -109,7 +121,11 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateCha
 	parsedClaims := jwt.MapClaims{}
 
 	_, err := jwt.ParseWithClaims(request.Token, parsedClaims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(c.secret), nil
+		if token.Header["alg"] == "RS256" {
+			return c.jwks.Keyfunc(token)
+		} else {
+			return []byte(c.secret), nil
+		}
 	})
 
 	if err != nil {
@@ -119,6 +135,7 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateCha
 	payload := parsedClaims["other"].(map[string]interface{})
 
 	userId := payload["userId"].(string)
+	username := payload["username"].(string)
 	idempotencyKey := payload["idempotencyKey"].(string)
 	action := payload["actionCode"].(string)
 
@@ -139,10 +156,10 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateCha
 
 		success := actionResult.State == "CHALLENGE_SUCCEEDED"
 
-		return ValidateChallengeResponse{success, actionResult.State}, nil
+		return ValidateChallengeResponse{success, actionResult.State, userId, username}, nil
 	}
 
-	return ValidateChallengeResponse{false, ""}, nil
+	return ValidateChallengeResponse{false, "", "", ""}, nil
 }
 
 func (c Client) get(path string) ([]byte, error) {
