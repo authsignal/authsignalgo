@@ -24,12 +24,12 @@ func (c Client) defaultHeaders() http.Header {
 	return http.Header{
 		"Accept":       {"*/*"},
 		"Content-Type": {"application/json"},
-		"User-Agent":   {"Authsignal Go"},
+		"User-Agent":   {"authsignalgo/v1"},
 	}
 }
 
 func (c Client) GetUser(request UserRequest) (UserResponse, error) {
-	path := request.UserId
+	path := fmt.Sprintf("/users/%s", request.UserId)
 	response, err := c.get(path)
 	if err != nil {
 		return UserResponse{}, err
@@ -50,7 +50,7 @@ func (c Client) TrackAction(request TrackRequest) (TrackResponse, error) {
 		return TrackResponse{}, err
 	}
 
-	path := fmt.Sprintf("%s/actions/%s", request.UserId, request.Action)
+	path := fmt.Sprintf("/users/%s/actions/%s", request.UserId, request.Action)
 	response, err2 := c.post(path, bytes.NewBuffer(body))
 	if err2 != nil {
 		return TrackResponse{}, err2
@@ -66,7 +66,7 @@ func (c Client) TrackAction(request TrackRequest) (TrackResponse, error) {
 }
 
 func (c Client) GetAction(request GetActionRequest) (GetActionResponse, error) {
-	path := fmt.Sprintf("%s/actions/%s/%s", request.UserId, request.Action, request.IdempotencyKey)
+	path := fmt.Sprintf("/users/%s/actions/%s/%s", request.UserId, request.Action, request.IdempotencyKey)
 	response, err := c.get(path)
 	if err != nil {
 		return GetActionResponse{}, err
@@ -87,7 +87,7 @@ func (c Client) EnrollVerifiedAuthenticator(request EnrollVerifiedAuthenticatorR
 		return EnrollVerifiedAuthenticatorResponse{}, err
 	}
 
-	path := fmt.Sprintf("%s/authenticators", request.UserId)
+	path := fmt.Sprintf("/users/%s/authenticators", request.UserId)
 	response, err2 := c.post(path, bytes.NewBuffer(body))
 	if err2 != nil {
 		return EnrollVerifiedAuthenticatorResponse{}, err2
@@ -108,8 +108,7 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateCha
 		return ValidateChallengeResponse{IsValid: false}, err
 	}
 
-	path := "validate"
-	response, err2 := c.post(path, bytes.NewBuffer(body))
+	response, err2 := c.post("/validate", bytes.NewBuffer(body))
 	if err2 != nil {
 		return ValidateChallengeResponse{IsValid: false}, err2
 	}
@@ -134,7 +133,7 @@ func (c Client) post(path string, body io.Reader) ([]byte, error) {
 func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error) {
 	client := http.Client{}
 	client.Timeout = RequestTimeout
-	req, err := http.NewRequest(method, fmt.Sprintf("%s/users/%s", c.apiUrl, path), body)
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", c.apiUrl, path), body)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +148,7 @@ func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error)
 	defer func() {
 		err := resp.Body.Close()
 		if err != nil {
-			return //todo handle error or pass up.
+			return
 		}
 	}()
 
