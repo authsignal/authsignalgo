@@ -152,13 +152,20 @@ func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error)
 		}
 	}()
 
-	if resp.StatusCode > 299 {
-		return nil, fmt.Errorf("bad request to %s, http status code of %d, status was: %s", req.URL, resp.StatusCode, resp.Status)
-	}
-
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode > 299 {
+		var apiErr AuthsignalApiError
+		jsonErr := json.Unmarshal(responseBody, &apiErr)
+
+		if jsonErr != nil {
+			return nil, jsonErr
+		}
+
+		return nil, fmt.Errorf("%s - %s", apiErr.Error, apiErr.ErrorDescription)
 	}
 
 	return responseBody, nil

@@ -93,3 +93,8 @@ type UserAuthenticator struct {
 	PhoneNumber         string
 	Email               string
 }
+
+type AuthsignalApiError struct {
+	Error            string
+	ErrorDescription string
+}
