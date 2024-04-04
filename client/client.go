@@ -108,7 +108,8 @@ func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateCha
 		return ValidateChallengeResponse{IsValid: false}, err
 	}
 
-	response, err2 := c.post("/validate", bytes.NewBuffer(body))
+	path := "/validate"
+	response, err2 := c.post(path, bytes.NewBuffer(body))
 	if err2 != nil {
 		return ValidateChallengeResponse{IsValid: false}, err2
 	}
