@@ -3,13 +3,10 @@ package client
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 const RequestTimeout = 10 * time.Second
@@ -32,7 +29,7 @@ func (c Client) defaultHeaders() http.Header {
 }
 
 func (c Client) GetUser(request UserRequest) (UserResponse, error) {
-	path := fmt.Sprintf("%s", request.UserId)
+	path := request.UserId
 	response, err := c.get(path)
 	if err != nil {
 		return UserResponse{}, err
@@ -106,43 +103,24 @@ func (c Client) EnrollVerifiedAuthenticator(request EnrollVerifiedAuthenticatorR
 }
 
 func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateChallengeResponse, error) {
-	parsedClaims := jwt.MapClaims{}
-
-	_, err := jwt.ParseWithClaims(request.Token, parsedClaims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(c.secret), nil
-	})
-
+	body, err := json.Marshal(request)
 	if err != nil {
-		return ValidateChallengeResponse{}, err
+		return ValidateChallengeResponse{IsValid: false}, err
 	}
 
-	payload := parsedClaims["other"].(map[string]interface{})
-
-	userId := payload["userId"].(string)
-	idempotencyKey := payload["idempotencyKey"].(string)
-	action := payload["actionCode"].(string)
-
-	if request.UserId != "" && request.UserId != userId {
-		return ValidateChallengeResponse{}, errors.New("invalid user")
+	path := "validate"
+	response, err2 := c.post(path, bytes.NewBuffer(body))
+	if err2 != nil {
+		return ValidateChallengeResponse{IsValid: false}, err2
 	}
 
-	if action != "" && idempotencyKey != "" {
-		actionResult, err := c.GetAction(GetActionRequest{
-			UserId:         userId,
-			Action:         action,
-			IdempotencyKey: idempotencyKey,
-		})
-
-		if err != nil {
-			return ValidateChallengeResponse{}, err
-		}
-
-		success := actionResult.State == "CHALLENGE_SUCCEEDED"
-
-		return ValidateChallengeResponse{success, actionResult.State}, nil
+	var data ValidateChallengeResponse
+	err3 := json.Unmarshal(response, &data)
+	if err3 != nil {
+		return ValidateChallengeResponse{IsValid: false}, err3
 	}
 
-	return ValidateChallengeResponse{false, ""}, nil
+	return data, nil
 }
 
 func (c Client) get(path string) ([]byte, error) {

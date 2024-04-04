@@ -68,13 +68,17 @@ type EnrollVerifiedAuthenticatorResponse struct {
 }
 
 type ValidateChallengeRequest struct {
-	Token  string
-	UserId string
+	Token string
 }
 
 type ValidateChallengeResponse struct {
-	Success bool
-	State   string
+	IsValid            bool
+	State              string
+	StateUpdatedAt     string
+	UserId             string
+	Action             string `json:"actionCode"`
+	IdempotencyKey     string
+	VerificationMethod string
 }
 
 type UserAuthenticator struct {
