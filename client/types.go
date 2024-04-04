@@ -21,16 +21,16 @@ type UserResponse struct {
 type TrackRequest struct {
 	UserId             string
 	Action             string
-	Email              string            `json:"email"`
-	PhoneNumber        string            `json:"phoneNumber"`
-	IdempotencyKey     string            `json:"idempotencyKey"`
-	RedirectUrl        string            `json:"redirectUrl"`
-	IpAddress          string            `json:"ipAddress"`
-	UserAgent          string            `json:"userAgent"`
-	DeviceId           string            `json:"deviceId"`
-	Scope              string            `json:"scope"`
-	Custom             map[string]string `json:"custom"`
-	RedirectToSettings bool              `json:"redirectToSettings"`
+	Email              string            `json:"email,omitempty"`
+	PhoneNumber        string            `json:"phoneNumber,omitempty"`
+	IdempotencyKey     string            `json:"idempotencyKey,omitempty"`
+	RedirectUrl        string            `json:"redirectUrl,omitempty"`
+	IpAddress          string            `json:"ipAddress,omitempty"`
+	UserAgent          string            `json:"userAgent,omitempty"`
+	DeviceId           string            `json:"deviceId,omitempty"`
+	Scope              string            `json:"scope,omitempty"`
+	Custom             map[string]string `json:"custom,omitempty"`
+	RedirectToSettings bool              `json:"redirectToSettings,omitempty"`
 }
 
 type TrackResponse struct {
@@ -58,8 +58,8 @@ type GetActionResponse struct {
 type EnrollVerifiedAuthenticatorRequest struct {
 	UserId      string
 	OobChannel  string `json:"oobChannel"`
-	PhoneNumber string `json:"phoneNumber"`
-	Email       string `json:"email"`
+	PhoneNumber string `json:"phoneNumber,omitempty"`
+	Email       string `json:"email,omitempty"`
 }
 
 type EnrollVerifiedAuthenticatorResponse struct {
