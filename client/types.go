@@ -68,7 +68,8 @@ type EnrollVerifiedAuthenticatorResponse struct {
 }
 
 type ValidateChallengeRequest struct {
-	Token string `json:"token"`
+	Token  string `json:"token"`
+	UserId string `json:"userId"`
 }
 
 type ValidateChallengeResponse struct {
