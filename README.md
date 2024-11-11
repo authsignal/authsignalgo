@@ -8,4 +8,4 @@ go get github.com/authsignal/authsignalgo
 
 ## Documentation
 
-Check out our [official documentation](https://docs.authsignal.com/api/server-api) to get up and running quickly.
+Check out our [official documentation](https://docs.authsignal.com/api-reference/server-api/overview) to get up and running quickly.
