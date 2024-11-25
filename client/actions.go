@@ -43,22 +43,43 @@ func (c Client) GetAction(input GetActionRequest) (GetActionResponse, error) {
 	return data, nil
 }
 
-func (c Client) UpdateAction(input UpdateActionRequest) (UpdateActionResponse, error) {
+func (c Client) UpdateAction(input UpdateActionRequest) (ActionAttributes, error) {
 	body, err := json.Marshal(input.Attributes)
 	if err != nil {
-		return UpdateActionResponse{}, err
+		return ActionAttributes{}, err
 	}
 
 	path := fmt.Sprintf("/users/%s/actions/%s/%s", input.UserId, input.Action, input.IdempotencyKey)
 	response, err := c.patch(path, bytes.NewBuffer(body))
 	if err != nil {
-		return UpdateActionResponse{}, err
+		return ActionAttributes{}, err
 	}
 
-	var data UpdateActionResponse
+	var data ActionAttributes
 	err = json.Unmarshal(response, &data)
 	if err != nil {
-		return UpdateActionResponse{}, err
+		return ActionAttributes{}, err
+	}
+
+	return data, nil
+}
+
+func (c Client) ValidateChallenge(input ValidateChallengeRequest) (ValidateChallengeResponse, error) {
+	body, err := json.Marshal(input)
+	if err != nil {
+		return ValidateChallengeResponse{}, err
+	}
+
+	path := "/validate"
+	response, err := c.post(path, bytes.NewBuffer(body))
+	if err != nil {
+		return ValidateChallengeResponse{}, err
+	}
+
+	var data ValidateChallengeResponse
+	err = json.Unmarshal(response, &data)
+	if err != nil {
+		return ValidateChallengeResponse{}, err
 	}
 
 	return data, nil

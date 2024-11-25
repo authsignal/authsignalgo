@@ -74,6 +74,10 @@ type TestConfig struct {
 	apiUrl       string
 }
 
+type ActionAttributes struct {
+	State string `json:"state,omitempty"`
+}
+
 // GetUser
 type GetUserRequest struct {
 	UserId string `json:"userId,omitempty"`
@@ -125,23 +129,10 @@ type DeleteUserResponse struct {
 
 // UpdateActionState
 type UpdateActionRequest struct {
-	UserId         string                  `json:"userId,omitempty"`
-	Action         string                  `json:"action,omitempty"`
-	IdempotencyKey string                  `json:"idempotencyKey,omitempty"`
-	Attributes     *UpdateActionAttributes `json:"attributes,omitempty"`
-}
-
-type UpdateActionAttributes struct {
-	State string `json:"state,omitempty"`
-}
-
-type UpdateActionResponse struct {
-	State              string      `json:"state,omitempty"`
-	CreatedAt          string      `json:"createdAt,omitempty"`
-	StateUpdatedAt     string      `json:"stateUpdatedAt,omitempty"`
-	Output             interface{} `json:"output,omitempty"`
-	VerificationMethod string      `json:"verificationMethod,omitempty"`
-	Rules              *[]Rule     `json:"rules,omitempty"`
+	UserId         string            `json:"userId,omitempty"`
+	Action         string            `json:"action,omitempty"`
+	IdempotencyKey string            `json:"idempotencyKey,omitempty"`
+	Attributes     *ActionAttributes `json:"attributes,omitempty"`
 }
 
 // GetAuthenticators
@@ -149,30 +140,10 @@ type GetAuthenticatorsRequest struct {
 	UserId string `json:"userId,omitempty"`
 }
 
-type GetUserAuthenticator struct {
-	UserAuthenticatorId string              `json:"userAuthenticatorId,omitempty"`
-	VerificationMethod  string              `json:"verificationMethod,omitempty"`
-	Email               string              `json:"email,omitempty"`
-	PhoneNumber         string              `json:"phoneNumber,omitempty"`
-	Username            string              `json:"username,omitempty"`
-	DisplayName         string              `json:"displayName,omitempty"`
-	CreatedAt           string              `json:"createdAt,omitempty"`
-	VerifiedAt          string              `json:"verifiedAt,omitempty"`
-	LastVerifiedAt      string              `json:"lastVerifiedAt,omitempty"`
-	PreviousSmsChannel  string              `json:"previousSmsChannel,omitempty"`
-	WebAuthnCredential  *WebAuthnCredential `json:"webAuthnCredential,omitempty"`
-}
-
-type GetAuthenticatorsResponse = []GetUserAuthenticator
-
 // DeleteAuthenticator
 type DeleteAuthenticatorRequest struct {
 	UserId              string `json:"userId,omitempty"`
 	UserAuthenticatorId string `json:"userAuthenticatorId,omitempty"`
-}
-
-type DeleteAuthenticatorResponse struct {
-	Success *bool `json:"success,omitempty"`
 }
 
 // Track
