@@ -109,15 +109,6 @@ type UserAttributes struct {
 	PhoneNumber string      `json:"phoneNumber,omitempty"`
 }
 
-type UpdateUserResponse struct {
-	UserId      string      `json:"userId,omitempty"`
-	Email       string      `json:"email,omitempty"`
-	PhoneNumber string      `json:"phoneNumber,omitempty"`
-	Username    string      `json:"username,omitempty"`
-	DisplayName string      `json:"displayName,omitempty"`
-	Custom      interface{} `json:"custom,omitempty"`
-}
-
 // DeleteUser
 type DeleteUserRequest struct {
 	UserId string `json:"userId,omitempty"`

@@ -22,22 +22,22 @@ func (c Client) GetUser(input GetUserRequest) (GetUserResponse, error) {
 	return data, nil
 }
 
-func (c Client) UpdateUser(input UpdateUserRequest) (UpdateUserResponse, error) {
+func (c Client) UpdateUser(input UpdateUserRequest) (UserAttributes, error) {
 	body, err := json.Marshal(input.Attributes)
 	if err != nil {
-		return UpdateUserResponse{}, err
+		return UserAttributes{}, err
 	}
 
 	path := fmt.Sprintf("/users/%s", input.UserId)
 	response, err := c.patch(path, bytes.NewBuffer(body))
 	if err != nil {
-		return UpdateUserResponse{}, err
+		return UserAttributes{}, err
 	}
 
-	var data UpdateUserResponse
+	var data UserAttributes
 	err = json.Unmarshal(response, &data)
 	if err != nil {
-		return UpdateUserResponse{}, err
+		return UserAttributes{}, err
 	}
 
 	return data, nil
