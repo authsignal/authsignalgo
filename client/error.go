@@ -17,5 +17,5 @@ func NewAuthsignalAPIError(errorCode string, errorDescription string, statusCode
 }
 
 func (e *AuthsignalAPIError) Error() string {
-	return fmt.Sprintf("Status %d - %s", e.StatusCode, e.ErrorDescription)
+	return fmt.Sprintf("AuthsignalException: %d - %s", e.StatusCode, e.ErrorDescription)
 }
