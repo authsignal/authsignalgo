@@ -123,10 +123,6 @@ type DeleteUserRequest struct {
 	UserId string `json:"userId,omitempty"`
 }
 
-type DeleteUserResponse struct {
-	Success *bool `json:"success"`
-}
-
 // UpdateActionState
 type UpdateActionRequest struct {
 	UserId         string            `json:"userId,omitempty"`
@@ -207,7 +203,6 @@ type EnrollVerifiedAuthenticatorAttributes struct {
 	Email              string `json:"email,omitempty"`
 	PhoneNumber        string `json:"phoneNumber,omitempty"`
 	OtpUri             string `json:"otpUri,omitempty"`
-	OobChannel         string `json:"oobChannel,omitempty"`
 }
 
 type UserAuthenticator struct {

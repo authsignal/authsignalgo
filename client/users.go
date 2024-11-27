@@ -45,13 +45,7 @@ func (c Client) UpdateUser(input UpdateUserRequest) (UpdateUserResponse, error) 
 
 func (c Client) DeleteUser(input DeleteUserRequest) error {
 	path := fmt.Sprintf("/users/%s", input.UserId)
-	response, err := c.delete(path)
-	if err != nil {
-		return err
-	}
-
-	var data DeleteUserResponse
-	err = json.Unmarshal(response, &data)
+	_, err := c.delete(path)
 	if err != nil {
 		return err
 	}
