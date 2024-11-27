@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,15 +8,20 @@ import (
 	"time"
 )
 
+const DEFAULT_API_URL = "https://api.authsignal.com/v1"
 const RequestTimeout = 10 * time.Second
 
 type Client struct {
-	secret string
-	apiUrl string
+	ApiSecretKey string
+	ApiUrl       string
+	Client       *http.Client
 }
 
-func New(secret, apiUrl string) Client {
-	return Client{secret: secret, apiUrl: apiUrl}
+func NewAuthsignalClient(apiSecretKey string, apiUrl string) Client {
+	if apiUrl == "" {
+		apiUrl = DEFAULT_API_URL
+	}
+	return Client{ApiSecretKey: apiSecretKey, ApiUrl: apiUrl, Client: &http.Client{Timeout: RequestTimeout}}
 }
 
 func (c Client) defaultHeaders() http.Header {
@@ -28,101 +32,6 @@ func (c Client) defaultHeaders() http.Header {
 	}
 }
 
-func (c Client) GetUser(request UserRequest) (UserResponse, error) {
-	path := fmt.Sprintf("/users/%s", request.UserId)
-	response, err := c.get(path)
-	if err != nil {
-		return UserResponse{}, err
-	}
-
-	var data UserResponse
-	err2 := json.Unmarshal(response, &data)
-	if err2 != nil {
-		return UserResponse{}, err2
-	}
-
-	return data, nil
-}
-
-func (c Client) TrackAction(request TrackRequest) (TrackResponse, error) {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return TrackResponse{}, err
-	}
-
-	path := fmt.Sprintf("/users/%s/actions/%s", request.UserId, request.Action)
-	response, err2 := c.post(path, bytes.NewBuffer(body))
-	if err2 != nil {
-		return TrackResponse{}, err2
-	}
-
-	var data TrackResponse
-	err3 := json.Unmarshal(response, &data)
-	if err3 != nil {
-		return TrackResponse{}, err3
-	}
-
-	return data, nil
-}
-
-func (c Client) GetAction(request GetActionRequest) (GetActionResponse, error) {
-	path := fmt.Sprintf("/users/%s/actions/%s/%s", request.UserId, request.Action, request.IdempotencyKey)
-	response, err := c.get(path)
-	if err != nil {
-		return GetActionResponse{}, err
-	}
-
-	var data GetActionResponse
-	err2 := json.Unmarshal(response, &data)
-	if err2 != nil {
-		return GetActionResponse{}, err2
-	}
-
-	return data, nil
-}
-
-func (c Client) EnrollVerifiedAuthenticator(request EnrollVerifiedAuthenticatorRequest) (EnrollVerifiedAuthenticatorResponse, error) {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return EnrollVerifiedAuthenticatorResponse{}, err
-	}
-
-	path := fmt.Sprintf("/users/%s/authenticators", request.UserId)
-	response, err2 := c.post(path, bytes.NewBuffer(body))
-	if err2 != nil {
-		return EnrollVerifiedAuthenticatorResponse{}, err2
-	}
-
-	var data EnrollVerifiedAuthenticatorResponse
-	err3 := json.Unmarshal(response, &data)
-	if err3 != nil {
-		return EnrollVerifiedAuthenticatorResponse{}, err3
-	}
-
-	return data, nil
-}
-
-func (c Client) ValidateChallenge(request ValidateChallengeRequest) (ValidateChallengeResponse, error) {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return ValidateChallengeResponse{IsValid: false}, err
-	}
-
-	path := "/validate"
-	response, err2 := c.post(path, bytes.NewBuffer(body))
-	if err2 != nil {
-		return ValidateChallengeResponse{IsValid: false}, err2
-	}
-
-	var data ValidateChallengeResponse
-	err3 := json.Unmarshal(response, &data)
-	if err3 != nil {
-		return ValidateChallengeResponse{IsValid: false}, err3
-	}
-
-	return data, nil
-}
-
 func (c Client) get(path string) ([]byte, error) {
 	return c.makeRequest("GET", path, nil)
 }
@@ -131,27 +40,29 @@ func (c Client) post(path string, body io.Reader) ([]byte, error) {
 	return c.makeRequest("POST", path, body)
 }
 
+func (c Client) patch(path string, body io.Reader) ([]byte, error) {
+	return c.makeRequest("PATCH", path, body)
+}
+
+func (c Client) delete(path string) ([]byte, error) {
+	return c.makeRequest("DELETE", path, nil)
+}
+
 func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error) {
-	client := http.Client{}
-	client.Timeout = RequestTimeout
-	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", c.apiUrl, path), body)
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", c.ApiUrl, path), body)
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header = c.defaultHeaders()
-	req.SetBasicAuth(c.secret, "")
-	resp, err := client.Do(req)
+	req.SetBasicAuth(c.ApiSecretKey, "")
+
+	resp, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			return
-		}
-	}()
+	defer resp.Body.Close()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -159,14 +70,15 @@ func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error)
 	}
 
 	if resp.StatusCode > 299 {
-		var apiErr AuthsignalApiError
-		jsonErr := json.Unmarshal(responseBody, &apiErr)
+		var apiErr AuthsignalAPIError
+		err := json.Unmarshal(responseBody, &apiErr)
+		apiErr.StatusCode = resp.StatusCode
 
-		if jsonErr != nil {
-			return nil, jsonErr
+		if err != nil {
+			return nil, err
 		}
 
-		return nil, fmt.Errorf("%s - %s", apiErr.Error, apiErr.ErrorDescription)
+		return nil, &apiErr
 	}
 
 	return responseBody, nil
