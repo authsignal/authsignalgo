@@ -153,3 +153,43 @@ func TestValidateChallenge(t *testing.T) {
 		t.Error("Expected IdempotencyKey to be set, got empty string")
 	}
 }
+
+func TestGetActionWithBadSecret(t *testing.T) {
+	badConfig := TestConfig{
+		apiSecretKey: "bad-secret",
+		apiUrl:       actionTestConfig.apiUrl,
+	}
+	client := NewAuthsignalClient(badConfig.apiSecretKey, badConfig.apiUrl)
+
+	input := GetActionRequest{
+		UserId: "test-user",
+		Action: "go-sdk-test",
+	}
+
+	_, err := client.GetAction(input)
+	if err == nil {
+		t.Fatal("Expected error with bad secret, got nil")
+	}
+
+	// Cast to AuthsignalAPIError to check specific error fields
+	apiErr, ok := err.(*AuthsignalAPIError)
+	if !ok {
+		t.Fatalf("Expected error to be of type *AuthsignalAPIError, got %T", err)
+	}
+
+	if apiErr.StatusCode != 401 {
+		t.Errorf("Expected status code 401, got %d", apiErr.StatusCode)
+	}
+
+	if apiErr.ErrorDescription != "The request is unauthorized. Check that your API key and region base URL are correctly configured." {
+		t.Errorf("Expected error description 'The request is unauthorized. Check that your API key and region base URL are correctly configured.', got '%s'", apiErr.ErrorDescription)
+	}
+
+	if apiErr.ErrorCode != "unauthorized" {
+		t.Errorf("Expected error code 'unauthorized', got '%s'", apiErr.ErrorCode)
+	}
+
+	if apiErr.Error() != "AuthsignalException: 401 - The request is unauthorized. Check that your API key and region base URL are correctly configured." {
+		t.Errorf("Expected error string 'AuthsignalException: 401 - The request is unauthorized. Check that your API key and region base URL are correctly configured.', got '%s'", apiErr.Error())
+	}
+}
