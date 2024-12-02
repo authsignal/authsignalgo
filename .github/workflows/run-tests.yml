@@ -1,0 +1,25 @@
+name: Run Tests
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run tests
+        env:
+          AUTHSIGNAL_API_SECRET: ${{ secrets.AUTHSIGNAL_API_SECRET }}
+          AUTHSIGNAL_API_URL: ${{ secrets.AUTHSIGNAL_API_URL }}
+        run: go test -v ./...
