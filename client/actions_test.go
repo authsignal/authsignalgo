@@ -193,3 +193,29 @@ func TestGetActionWithBadSecret(t *testing.T) {
 		t.Errorf("Expected error string 'AuthsignalException: 401 - The request is unauthorized. Check that your API key and region base URL are correctly configured.', got '%s'", apiErr.Error())
 	}
 }
+
+func TestTrackWithoutAttributes(t *testing.T) {
+	client := NewAuthsignalClient(actionTestConfig.apiSecretKey, actionTestConfig.apiUrl)
+
+	trackInput := TrackRequest{
+		UserId: "user123",
+		Action: "go-sdk-test",
+	}
+
+	trackResponse, err := client.Track(trackInput)
+	if err != nil {
+		t.Fatalf("Track failed: %v", err)
+	}
+
+	if trackResponse.State != "CHALLENGE_REQUIRED" {
+		t.Errorf("Expected State to be 'CHALLENGE_REQUIRED', got %s", trackResponse.State)
+	}
+
+	if trackResponse.IdempotencyKey == "" {
+		t.Error("Expected IdempotencyKey to be set, got empty string")
+	}
+
+	if trackResponse.Token == "" {
+		t.Error("Expected Token to be set, got empty string")
+	}
+}
