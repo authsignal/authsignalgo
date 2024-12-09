@@ -7,9 +7,15 @@ import (
 )
 
 func (c Client) Track(input TrackRequest) (TrackResponse, error) {
-	body, err := json.Marshal(input.Attributes)
-	if err != nil {
-		return TrackResponse{}, err
+	var body []byte
+	var err error
+	if input.Attributes == nil {
+		body = []byte("{}")
+	} else {
+		body, err = json.Marshal(input.Attributes)
+		if err != nil {
+			return TrackResponse{}, err
+		}
 	}
 
 	path := fmt.Sprintf("/users/%s/actions/%s", input.UserId, input.Action)
