@@ -1,3 +1,5 @@
+<img width="1070" alt="Authsignal" src="https://raw.githubusercontent.com/authsignal/authsignalgo/main/.github/images/authsignal.png">
+
 # Authsignal Go SDK
 
 ## Installation
