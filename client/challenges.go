@@ -7,10 +7,6 @@ import (
 	"strings"
 )
 
-type VerificationMethod string
-
-type SmsChannel string
-
 func (c Client) Challenge(req ChallengeRequest) (ChallengeResponse, error) {
 	var resp ChallengeResponse
 	body, err := json.Marshal(req)

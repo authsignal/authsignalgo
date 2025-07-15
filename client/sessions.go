@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -64,7 +63,10 @@ func (c Client) RevokeSession(req RevokeSessionRequest) error {
 }
 
 func (c Client) RevokeUserSessions(req RevokeUserSessionsRequest) error {
-	// No request body, userId is in the path
-	_, err := c.post(fmt.Sprintf("/users/%s/sessions/revoke", req.UserId), nil)
+	body, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+	_, err = c.post("/sessions/user/revoke", strings.NewReader(string(body)))
 	return err
 }
