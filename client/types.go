@@ -232,3 +232,94 @@ type ValidateChallengeResponse struct {
 	IdempotencyKey     string `json:"idempotencyKey,omitempty"`
 	VerificationMethod string `json:"verificationMethod,omitempty"`
 }
+
+type ChallengeRequest struct {
+	VerificationMethod string `json:"verificationMethod"`
+	Action             string `json:"action"`
+	Email              string `json:"email,omitempty"`
+	PhoneNumber        string `json:"phoneNumber,omitempty"`
+	SmsChannel         string `json:"smsChannel,omitempty"`
+}
+
+type ChallengeResponse struct {
+	ChallengeId string `json:"challengeId"`
+}
+
+type VerifyRequest struct {
+	ChallengeId      string `json:"challengeId"`
+	VerificationCode string `json:"verificationCode"`
+}
+
+type VerifyResponse struct {
+	IsVerified         bool   `json:"isVerified"`
+	Email              string `json:"email,omitempty"`
+	PhoneNumber        string `json:"phoneNumber,omitempty"`
+	VerificationMethod string `json:"verificationMethod,omitempty"`
+}
+
+type ClaimChallengeRequest struct {
+	ChallengeId string `json:"challengeId"`
+	UserId      string `json:"userId"`
+}
+
+type ClaimChallengeResponse struct {
+	Token              string `json:"token"`
+	VerificationMethod string `json:"verificationMethod"`
+}
+
+type GetChallengeRequest struct {
+	ChallengeId        string `json:"challengeId,omitempty"`
+	UserId             string `json:"userId,omitempty"`
+	Action             string `json:"action,omitempty"`
+	VerificationMethod string `json:"verificationMethod,omitempty"`
+}
+
+type GetChallengeResponse struct {
+	ChallengeId        string `json:"challengeId,omitempty"`
+	ExpiresAt          int64  `json:"expiresAt,omitempty"`
+	VerificationMethod string `json:"verificationMethod,omitempty"`
+	SmsChannel         string `json:"smsChannel,omitempty"`
+	PhoneNumber        string `json:"phoneNumber,omitempty"`
+	Email              string `json:"email,omitempty"`
+	Action             string `json:"action,omitempty"`
+}
+
+type CreateSessionRequest struct {
+	ClientId string `json:"clientId"`
+	Token    string `json:"token"`
+}
+
+type CreateSessionResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+type ValidateSessionRequest struct {
+	AccessToken string   `json:"accessToken"`
+	ClientIds   []string `json:"clientIds,omitempty"`
+}
+
+type ValidateSessionResponse struct {
+	User struct {
+		UserId string `json:"userId"`
+		UserAttributes
+	} `json:"user"`
+	ExpiresAt int64 `json:"expiresAt"`
+}
+
+type RefreshSessionRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type RefreshSessionResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+type RevokeSessionRequest struct {
+	AccessToken string `json:"accessToken"`
+}
+
+type RevokeUserSessionsRequest struct {
+	UserId string `json:"userId"`
+}
