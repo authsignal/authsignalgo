@@ -243,6 +243,7 @@ type ChallengeRequest struct {
 
 type ChallengeResponse struct {
 	ChallengeId string `json:"challengeId"`
+	ExpiresAt   int64  `json:"expiresAt"`
 }
 
 type VerifyRequest struct {
