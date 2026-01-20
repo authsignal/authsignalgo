@@ -114,6 +114,31 @@ type DeleteUserRequest struct {
 	UserId string `json:"userId,omitempty"`
 }
 
+// QueryUsers
+type QueryUsersRequest struct {
+	Username            string `json:"username,omitempty"`
+	Email               string `json:"email,omitempty"`
+	PhoneNumber         string `json:"phoneNumber,omitempty"`
+	Token               string `json:"token,omitempty"`
+	Limit               *int   `json:"limit,omitempty"`
+	LastEvaluatedUserId string `json:"lastEvaluatedUserId,omitempty"`
+}
+
+type QueryUsersResponseUser struct {
+	UserId              string `json:"userId,omitempty"`
+	Email               string `json:"email,omitempty"`
+	EmailVerified       bool   `json:"emailVerified"`
+	PhoneNumber         string `json:"phoneNumber,omitempty"`
+	PhoneNumberVerified bool   `json:"phoneNumberVerified"`
+	Username            string `json:"username,omitempty"`
+}
+
+type QueryUsersResponse struct {
+	Users               []QueryUsersResponseUser `json:"users"`
+	LastEvaluatedUserId string                   `json:"lastEvaluatedUserId,omitempty"`
+	TokenPayload        interface{}              `json:"tokenPayload,omitempty"`
+}
+
 // UpdateActionState
 type UpdateActionRequest struct {
 	UserId         string            `json:"userId,omitempty"`
