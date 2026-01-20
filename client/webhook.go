@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-// Default tolerance (in minutes) for difference between timestamp in signature and current time
-// This is used to prevent replay attacks
 const DefaultTolerance = 5
 
 const version = "v2"
@@ -24,10 +22,6 @@ func NewWebhook(apiSecretKey string) *Webhook {
 	return &Webhook{ApiSecretKey: apiSecretKey}
 }
 
-// ConstructEvent verifies the webhook signature and returns the parsed event.
-// payload is the raw request body as a string.
-// signature is the value of the webhook signature header.
-// tolerance is the maximum age of the webhook in minutes (use DefaultTolerance or -1 to disable).
 func (w *Webhook) ConstructEvent(payload string, signature string, tolerance int) (*WebhookEvent, error) {
 	parsedSignature, err := w.parseSignature(signature)
 	if err != nil {
@@ -46,7 +40,6 @@ func (w *Webhook) ConstructEvent(payload string, signature string, tolerance int
 
 	match := false
 	for _, sig := range parsedSignature.Signatures {
-		// Use constant-time comparison to prevent timing attacks
 		if hmac.Equal([]byte(sig), []byte(computedSignature)) {
 			match = true
 			break
@@ -65,7 +58,6 @@ func (w *Webhook) ConstructEvent(payload string, signature string, tolerance int
 	return &event, nil
 }
 
-// ConstructEventWithDefaultTolerance verifies the webhook signature using the default tolerance.
 func (w *Webhook) ConstructEventWithDefaultTolerance(payload string, signature string) (*WebhookEvent, error) {
 	return w.ConstructEvent(payload, signature, DefaultTolerance)
 }
@@ -116,6 +108,5 @@ func (w *Webhook) computeHmac(data string) string {
 	mac := hmac.New(sha256.New, []byte(w.ApiSecretKey))
 	mac.Write([]byte(data))
 	signature := base64.StdEncoding.EncodeToString(mac.Sum(nil))
-	// Remove trailing '=' characters to match the expected format
 	return strings.Replace(signature, "=", "", -1)
 }

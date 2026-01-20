@@ -20,7 +20,6 @@ func (e *AuthsignalAPIError) Error() string {
 	return fmt.Sprintf("AuthsignalException: %d - %s", e.StatusCode, e.ErrorDescription)
 }
 
-// InvalidSignatureError is returned when webhook signature verification fails.
 type InvalidSignatureError struct {
 	Message string
 }
