@@ -349,3 +349,14 @@ type RevokeSessionRequest struct {
 type RevokeUserSessionsRequest struct {
 	UserId string `json:"userId"`
 }
+
+// WebhookEvent represents an event received from an Authsignal webhook.
+type WebhookEvent struct {
+	Version  int                    `json:"version"`
+	Type     string                 `json:"type"`
+	Id       string                 `json:"id"`
+	Source   string                 `json:"source"`
+	Time     string                 `json:"time"`
+	TenantId string                 `json:"tenantId"`
+	Data     map[string]interface{} `json:"data"`
+}

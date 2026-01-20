@@ -28,7 +28,7 @@ func (c Client) defaultHeaders() http.Header {
 	return http.Header{
 		"Accept":       {"*/*"},
 		"Content-Type": {"application/json"},
-		"User-Agent":   {"authsignalgo/v1"},
+		"User-Agent":   {"authsignalgo/v2"},
 	}
 }
 
