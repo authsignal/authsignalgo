@@ -256,6 +256,7 @@ type ValidateChallengeResponse struct {
 	Action             string `json:"action,omitempty"`
 	IdempotencyKey     string `json:"idempotencyKey,omitempty"`
 	VerificationMethod string `json:"verificationMethod,omitempty"`
+	VeriffSessionId    string `json:"veriffSessionId,omitempty"`
 }
 
 type ChallengeRequest struct {
