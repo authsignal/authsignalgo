@@ -19,3 +19,15 @@ func NewAuthsignalAPIError(errorCode string, errorDescription string, statusCode
 func (e *AuthsignalAPIError) Error() string {
 	return fmt.Sprintf("AuthsignalException: %d - %s", e.StatusCode, e.ErrorDescription)
 }
+
+type InvalidSignatureError struct {
+	Message string
+}
+
+func NewInvalidSignatureError(message string) *InvalidSignatureError {
+	return &InvalidSignatureError{Message: message}
+}
+
+func (e *InvalidSignatureError) Error() string {
+	return e.Message
+}
