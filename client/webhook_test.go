@@ -155,6 +155,79 @@ func TestValidSignatureWhenTwoApiKeysActive(t *testing.T) {
 	}
 }
 
+func TestEventWithCustomVariables(t *testing.T) {
+	webhook := getTestWebhook()
+	payload := `{"version":1,"id":"bc1598bc-e5d6-4c69-9afb-1a6fe3469d6e","source":"https://authsignal.com","time":"2025-02-20T01:51:56.070Z","tenantId":"7752d28e-e627-4b1b-bb81-b45d68d617bc","type":"sms.created","data":{"actionCode":"smsVerify","customVariables":{"action_journeyType":"ForgotChangePassword","retryCount":2,"isRecovery":true,"channels":["sms","email"]}}}`
+	timestamp := time.Now().Unix()
+
+	event, err := webhook.ConstructEvent(payload, generateTestSignature(payload, timestamp, testSecretKey), DefaultTolerance)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	customVariables, ok := event.Data["customVariables"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected customVariables to be an object, got %T", event.Data["customVariables"])
+	}
+
+	if customVariables["action_journeyType"] != "ForgotChangePassword" {
+		t.Errorf("Expected journey type to be preserved, got %v", customVariables["action_journeyType"])
+	}
+	if customVariables["retryCount"] != float64(2) {
+		t.Errorf("Expected numeric value to be preserved, got %v", customVariables["retryCount"])
+	}
+	if customVariables["isRecovery"] != true {
+		t.Errorf("Expected boolean value to be preserved, got %v", customVariables["isRecovery"])
+	}
+	channels, ok := customVariables["channels"].([]interface{})
+	if !ok || len(channels) != 2 || channels[0] != "sms" || channels[1] != "email" {
+		t.Errorf("Expected array value to be preserved, got %v", customVariables["channels"])
+	}
+}
+
+func TestLogEventBatch(t *testing.T) {
+	webhook := getTestWebhook()
+	payload := `{"records":[{"version":1,"id":"bc1598bc-e5d6-4c69-9afb-1a6fe3469d6e","source":"https://authsignal.com","time":"2025-02-20T01:51:56.070Z","tenantId":"7752d28e-e627-4b1b-bb81-b45d68d617bc","type":"action.log_created","record":{"userId":"b9f74d36-fcfc-4efc-87f1-3664ab5a7fb0","customVariables":{"journeyType":"accountRecovery"}}}]}`
+	timestamp := time.Now().Unix()
+
+	batch, err := webhook.ConstructLogEventBatchWithDefaultTolerance(
+		payload,
+		generateTestSignature(payload, timestamp, testSecretKey),
+	)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if len(batch.Records) != 1 {
+		t.Fatalf("Expected one record, got %d", len(batch.Records))
+	}
+	customVariables, ok := batch.Records[0].Record["customVariables"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected customVariables to be an object, got %T", batch.Records[0].Record["customVariables"])
+	}
+	if customVariables["journeyType"] != "accountRecovery" {
+		t.Errorf("Expected journey type to be preserved, got %v", customVariables["journeyType"])
+	}
+}
+
+func TestLogEventBatchPassedToConstructEvent(t *testing.T) {
+	webhook := getTestWebhook()
+	payload := `{"records":[]}`
+	timestamp := time.Now().Unix()
+
+	_, err := webhook.ConstructEvent(
+		payload,
+		generateTestSignature(payload, timestamp, testSecretKey),
+		DefaultTolerance,
+	)
+	if err == nil {
+		t.Fatal("Expected an error to be returned")
+	}
+	if err.Error() != "Payload is a batch of log events. Use ConstructLogEventBatch instead." {
+		t.Errorf("Unexpected error: %v", err)
+	}
+}
+
 func TestValidSignatureWithOldKeyFirst(t *testing.T) {
 	webhook := getTestWebhook()
 
@@ -312,9 +385,9 @@ func TestInvalidJSON(t *testing.T) {
 		return
 	}
 
-	_, ok := err.(*InvalidSignatureError)
-	if ok {
-		t.Error("Expected JSON error, not InvalidSignatureError")
+	_, ok := err.(*InvalidPayloadError)
+	if !ok {
+		t.Errorf("Expected InvalidPayloadError, got %T", err)
 	}
 }
 

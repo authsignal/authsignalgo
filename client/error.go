@@ -31,3 +31,15 @@ func NewInvalidSignatureError(message string) *InvalidSignatureError {
 func (e *InvalidSignatureError) Error() string {
 	return e.Message
 }
+
+type InvalidPayloadError struct {
+	Message string
+}
+
+func NewInvalidPayloadError(message string) *InvalidPayloadError {
+	return &InvalidPayloadError{Message: message}
+}
+
+func (e *InvalidPayloadError) Error() string {
+	return e.Message
+}
