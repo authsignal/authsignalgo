@@ -360,3 +360,17 @@ type WebhookEvent struct {
 	TenantId string                 `json:"tenantId"`
 	Data     map[string]interface{} `json:"data"`
 }
+
+type WebhookLogEvent struct {
+	Version  int                    `json:"version"`
+	Type     string                 `json:"type"`
+	Id       string                 `json:"id"`
+	Source   string                 `json:"source"`
+	Time     string                 `json:"time"`
+	TenantId string                 `json:"tenantId"`
+	Record   map[string]interface{} `json:"record"`
+}
+
+type WebhookEventBatch struct {
+	Records []WebhookLogEvent `json:"records"`
+}
