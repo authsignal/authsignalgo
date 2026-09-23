@@ -70,7 +70,10 @@ func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error)
 	}
 
 	if resp.StatusCode > 299 {
-		var apiErr AuthsignalAPIError
+		var apiErr struct {
+			AuthsignalAPIError
+			Error string `json:"error"`
+		}
 		err := json.Unmarshal(responseBody, &apiErr)
 		apiErr.StatusCode = resp.StatusCode
 
@@ -78,7 +81,10 @@ func (c Client) makeRequest(method, path string, body io.Reader) ([]byte, error)
 			return nil, err
 		}
 
-		return nil, &apiErr
+		if apiErr.ErrorCode == "" {
+			apiErr.ErrorCode = apiErr.Error
+		}
+		return nil, &apiErr.AuthsignalAPIError
 	}
 
 	return responseBody, nil
