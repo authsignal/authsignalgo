@@ -61,10 +61,7 @@ type ChallengeAttributes struct {
 type FlowUser struct {
 	UserId         string                  `json:"userId"`
 	Authenticators []FlowUserAuthenticator `json:"authenticators"`
-	Email          *string                 `json:"email,omitempty"`
-	PhoneNumber    *string                 `json:"phoneNumber,omitempty"`
 	Username       *string                 `json:"username,omitempty"`
-	DisplayName    *string                 `json:"displayName,omitempty"`
 }
 
 type FlowUserAuthenticator struct {
