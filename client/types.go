@@ -260,16 +260,27 @@ type ValidateChallengeResponse struct {
 }
 
 type ChallengeRequest struct {
-	VerificationMethod string `json:"verificationMethod"`
-	Action             string `json:"action"`
-	Email              string `json:"email,omitempty"`
-	PhoneNumber        string `json:"phoneNumber,omitempty"`
-	SmsChannel         string `json:"smsChannel,omitempty"`
+	VerificationMethod string      `json:"verificationMethod"`
+	Action             string      `json:"action"`
+	Email              string      `json:"email,omitempty"`
+	PhoneNumber        string      `json:"phoneNumber,omitempty"`
+	SmsChannel         string      `json:"smsChannel,omitempty"`
+	Locale             string      `json:"locale,omitempty"`
+	IdempotencyKey     string      `json:"idempotencyKey,omitempty"`
+	ChallengeId        string      `json:"challengeId,omitempty"`
+	UserId             string      `json:"userId,omitempty"`
+	DeviceId           string      `json:"deviceId,omitempty"`
+	IpAddress          string      `json:"ipAddress,omitempty"`
+	UserAgent          string      `json:"userAgent,omitempty"`
+	Custom             interface{} `json:"custom,omitempty"`
+	Scope              string      `json:"scope,omitempty"`
 }
 
 type ChallengeResponse struct {
-	ChallengeId string `json:"challengeId"`
-	ExpiresAt   int64  `json:"expiresAt"`
+	ChallengeId       string `json:"challengeId"`
+	IdempotencyKey    string `json:"idempotencyKey"`
+	ExpiresAt         int64  `json:"expiresAt"`
+	RetryAfterSeconds int64  `json:"retryAfterSeconds,omitempty"`
 }
 
 type VerifyRequest struct {
@@ -282,11 +293,13 @@ type VerifyResponse struct {
 	Email              string `json:"email,omitempty"`
 	PhoneNumber        string `json:"phoneNumber,omitempty"`
 	VerificationMethod string `json:"verificationMethod,omitempty"`
+	FailureReason      string `json:"failureReason,omitempty"`
 }
 
 type ClaimChallengeRequest struct {
-	ChallengeId string `json:"challengeId"`
-	UserId      string `json:"userId"`
+	ChallengeId           string `json:"challengeId"`
+	UserId                string `json:"userId"`
+	SkipVerificationCheck bool   `json:"skipVerificationCheck,omitempty"`
 }
 
 type ClaimChallengeResponse struct {
